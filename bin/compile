@@ -14,9 +14,16 @@ set -e
 # Create a directory for the virus database
 mkdir -p "${cache}/clamav-data"
 
+# Create a directory for the CVD certificates
+mkdir -p "${cache}/clamav-certs"
+
 # Refresh the virus database, the source is specified in the conf file
-freshclam --config-file="${build}/config/clamav/freshclam.conf" --datadir="${cache}/clamav-data/" --quiet
+freshclam --config-file="${build}/config/clamav/freshclam.conf" --datadir="${cache}/clamav-data/" --cvdcertsdir="${cache}/clamav-certs/" --quiet
 
 # Replace the old virus database
 rm -rf "${build}/.clamav-data"
 cp -rp "${cache}/clamav-data" "${build}/.clamav-data"
+
+# Replace the old CVD certificates
+rm -rf "${build}/.clamav-certs"
+cp -rp "${cache}/clamav-certs" "${build}/.clamav-certs"
