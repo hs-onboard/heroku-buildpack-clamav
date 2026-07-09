@@ -14,9 +14,27 @@ set -e
 # Create a directory for the virus database
 mkdir -p "${cache}/clamav-data"
 
+# Create a directory for the CVD certificates
+mkdir -p "${cache}/clamav-certs"
+
+# Download certificate
+curl -fsSL https://raw.githubusercontent.com/Cisco-Talos/clamav/clamav-1.5.3/certs/clamav.crt -o "${cache}/clamav-certs/clamav.crt"
+
+cp "${build}/config/clamav/freshclam.conf" "${cache}/freshclam.conf"
+sed -i '/^DatabaseDirectory /d;/^CVDCertsDirectory /d' "${cache}/freshclam.conf"
+
+cat >> "${cache}/freshclam.conf" <<EOF
+DatabaseDirectory ${cache}/clamav-data
+CVDCertsDirectory ${cache}/clamav-certs
+EOF
+
 # Refresh the virus database, the source is specified in the conf file
-freshclam --config-file="${build}/config/clamav/freshclam.conf" --datadir="${cache}/clamav-data/" --quiet
+freshclam --config-file="${cache}/freshclam.conf" --quiet
 
 # Replace the old virus database
 rm -rf "${build}/.clamav-data"
 cp -rp "${cache}/clamav-data" "${build}/.clamav-data"
+
+# Replace the old CVD certificates
+rm -rf "${build}/.clamav-certs"
+cp -rp "${cache}/clamav-certs" "${build}/.clamav-certs"
